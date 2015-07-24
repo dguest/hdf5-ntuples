@@ -1,4 +1,3 @@
-#include "tools.hh"
 #include <cstdio>
 #include <cstdlib>
 #include <vector>

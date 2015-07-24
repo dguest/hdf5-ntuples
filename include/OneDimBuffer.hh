@@ -1,5 +1,5 @@
-#ifndef TOOLS_HH
-#define TOOLS_HH
+#ifndef ONE_DIM_BUFFER_HH
+#define ONE_DIM_BUFFER_HH
 
 #include "H5Cpp.h"
 #include <string>
@@ -13,6 +13,7 @@ public:
 	       H5::DataType type, hsize_t = 10);
   void push_back(T new_entry);
   void flush();
+  hsize_t size() const;
 private:
   H5::DataType _type;
   hsize_t _max_size;
@@ -35,7 +36,7 @@ OneDimBuffer<T>::OneDimBuffer(
   H5::DataSpace orig_space(1, initial, eventual);
 
   H5::DSetCreatPropList params;
-  hsize_t chunk_size[1] = {100};
+  hsize_t chunk_size[1] = {size};
   params.setChunk(1, chunk_size);
 
   _ds = group.createDataSet(ds_name, _type, orig_space, params);
@@ -63,6 +64,11 @@ void OneDimBuffer<T>::flush() {
   _ds.write(_buffer.data(), _type, mem_space, file_space);
   _offset += _buffer.size();
   _buffer.clear();
+}
+template<typename T>
+hsize_t OneDimBuffer<T>::size() const
+{
+  return _offset + _buffer.size();
 }
 
 #endif
