@@ -11,6 +11,7 @@ struct Entry {
   int value_i;
   const char* value_s;
   hvl_t vector_d;
+  double some_shit[56];
 };
 
 // class EntryOwner: public Entry

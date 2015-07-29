@@ -5,16 +5,24 @@
 #include <string>
 #include <vector>
 
+namespace h5 {
+  H5::CompType packed(H5::CompType);
+}
+
 template<typename T>
 class OneDimBuffer
 {
 public:
   OneDimBuffer(H5::CommonFG& group, std::string ds_name,
 	       H5::DataType type, hsize_t = 10);
+  OneDimBuffer(H5::CommonFG& group, std::string ds_name,
+	       H5::CompType type, hsize_t = 10);
   void push_back(T new_entry);
   void flush();
   hsize_t size() const;
 private:
+  OneDimBuffer(H5::CommonFG& group, std::string ds_name,
+	       H5::DataType type, H5::DataType disk_type, hsize_t = 10);
   H5::DataType _type;
   hsize_t _max_size;
   hsize_t _offset;
@@ -26,6 +34,21 @@ template<typename T>
 OneDimBuffer<T>::OneDimBuffer(
   H5::CommonFG& group, std::string ds_name,
   H5::DataType type, hsize_t size):
+  OneDimBuffer(group, ds_name, type, type, size)
+{
+}
+template<typename T>
+OneDimBuffer<T>::OneDimBuffer(
+  H5::CommonFG& group, std::string ds_name,
+  H5::CompType type, hsize_t size):
+  OneDimBuffer(group, ds_name, type, h5::packed(type), size)
+{
+}
+
+template<typename T>
+OneDimBuffer<T>::OneDimBuffer(
+  H5::CommonFG& group, std::string ds_name,
+  H5::DataType type, H5::DataType disk_type, hsize_t size):
   _type(type),
   _max_size(size),
   _offset(0)
@@ -39,7 +62,7 @@ OneDimBuffer<T>::OneDimBuffer(
   hsize_t chunk_size[1] = {size};
   params.setChunk(1, chunk_size);
 
-  _ds = group.createDataSet(ds_name, _type, orig_space, params);
+  _ds = group.createDataSet(ds_name, disk_type, orig_space, params);
 }
 
 template<typename T>
@@ -69,6 +92,16 @@ template<typename T>
 hsize_t OneDimBuffer<T>::size() const
 {
   return _offset + _buffer.size();
+}
+
+// util functuinos
+namespace h5 {
+  H5::CompType packed(H5::CompType in) {
+    // TODO: figure out why a normal copy constructor doesn't work here
+    auto out = H5::CompType(H5Tcopy(in.getId()));
+    out.pack();
+    return out;
+  }
 }
 
 #endif
