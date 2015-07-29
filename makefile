@@ -94,7 +94,7 @@ include  $(ALLOBJ:%.o=$(DEP)/%.d)
 endif
 endif
 
-DEPTARGSTR = -MT $(BUILD)/.o -MT $(DEP)/.d
+DEPTARGSTR = -MT $(BUILD)/$*.o -MT $(DEP)/$*.d
 $(DEP)/%.d: %.cxx
 	@echo making dependencies for $<
 	@mkdir -p $(DEP)
