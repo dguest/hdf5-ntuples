@@ -1,10 +1,11 @@
+// this is called main, but it's just a bunch of junk I'm playing around with
+// don't think too hard on anything here.
 #include <cstdio>
 #include <cstdlib>
 #include <vector>
 #include <string>
 
 #include "H5Cpp.h"
-
 
 struct Point {
   double thed;

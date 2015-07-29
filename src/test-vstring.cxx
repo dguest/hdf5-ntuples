@@ -1,3 +1,7 @@
+// Example routine that shows how to save a variable length container in
+// a zero-dimensional dataset.
+// In this case we're working with a vector of strings.
+
 #include <vector>
 #include <string>
 
