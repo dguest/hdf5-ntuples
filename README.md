@@ -1,7 +1,7 @@
 HDF5 Examples
 -------------
 
-# What is this for?
+### What is this for?
 
 This is a few tests assess the usefulness of a lightweight C++ based
 root to HDF5 converter. The goals are to:
@@ -16,12 +16,12 @@ root to HDF5 converter. The goals are to:
 
  - Keep the interface relatively close to the HDF5 bindings.
 
-# What does it do right now?
+### What does it do right now?
 
 Not a lot. There are a few routines that write out dummy ntuples.
 If this turns out to be useful it may be developed more.
 
-# Quickstart
+### Quickstart
 
  1. Clone this repository
  2. Run `make`
