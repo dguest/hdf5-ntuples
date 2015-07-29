@@ -13,6 +13,7 @@
 #include <cstddef>
 #include <cmath>
 #include "H5Cpp.h"
+#include "h5container.hh"
 
 // _________________________________________________________________________
 // output structure
@@ -24,7 +25,7 @@ struct Entry {
   const char* value_s;
 
   // `hvl_t` is a variable-length type that hdf5 can recognize.
-  hvl_t vector_d;
+  h5::vector<double> vector_d;
 
   // Include a dummy field. This is just here to make sure it gets
   // stripped off when we run `pack()`.
@@ -74,7 +75,7 @@ int main(int argc, char* argv[]) {
   entryType.insertMember("value_d", offsetof(Entry, value_d), dtype);
   entryType.insertMember("value_i", offsetof(Entry, value_i), itype);
   entryType.insertMember("value_s", offsetof(Entry, value_s), stype);
-  entryType.insertMember("vector_d", offsetof(Entry, vector_d), vl_dtype);
+  entryType.insertMember("vector_d", offsetof(Entry, vector_d.h5), vl_dtype);
   OneDimBuffer<Entry> ebuffer(file, "entries", entryType);
 
   // Now we generate some dummy data
@@ -95,7 +96,7 @@ int main(int argc, char* argv[]) {
       std::sqrt(iii),
 	iii*2,
 	some_string.data(),
-	{d_vect.size(), d_vect.data()}};
+	d_vect};
     // add the `Entry` to the buffer.
     ebuffer.push_back(entry);
 
@@ -110,7 +111,7 @@ int main(int argc, char* argv[]) {
     //        structures and buffer them like we would any other
     //        primative type. Will do that if any of this turns out to
     //        be useful...
-    ebuffer.flush();
+    // ebuffer.flush();
   }
   // Buffers need to be flushed after the loop, since `flush` is only
   // called automatically when the buffer fills up.
