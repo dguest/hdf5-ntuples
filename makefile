@@ -105,7 +105,7 @@ $(DEP)/%.d: %.cxx
 CLEANLIST     = *~ *.o *.o~ *.d core
 clean:
 	rm -fr $(CLEANLIST) $(CLEANLIST:%=$(BUILD)/%) $(CLEANLIST:%=$(DEP)/%)
-	rm -fr $(BUILD) $(DICT)
+	rm -fr $(BUILD) $(DICT) $(BIN)
 
 rmdep:
 	rm -f $(DEP)/*.d

@@ -11,12 +11,16 @@ converter. The goals are to:
    compile on the server you want them to work on. The dependencies
    are currently:
 
-    + A C++11 compiler (tested with Clang and gcc)
-    + HDF5 with C++ bindings.
+	+ A C++11 compiler (tested with Clang and gcc)
+	+ HDF5 with C++ bindings.
 
    Obviously we'll eventually need a working version of ROOT.
 
- - Keep the interface relatively close to the HDF5 bindings.
+ - Support writing of D3PD-like data structures, i.e. arbitrary-depth
+   nested vectors containing arbitrary data types.
+
+ - Keep the interface relatively close to the HDF5 bindings. We're not
+   trying to abstract _everything_ away.
 
 ### What does it do right now?
 
