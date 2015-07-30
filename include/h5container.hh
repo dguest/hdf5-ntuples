@@ -1,5 +1,6 @@
 // Container classes
 // TODO:
+//  - Make sure the h5::vector constructor works on nested std::vector.
 //  - Figure out how to avoid calling `reset()` on each push_back call,
 //    we only really need this when the vector is moved after we exceed
 //    capacity.
