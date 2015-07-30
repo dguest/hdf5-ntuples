@@ -7,11 +7,11 @@ This is a viability test for a lightweight C++ based ROOT to HDF5
 converter. The goals are to:
 
  - Reduce dependencies. We want this to work without `PyRoot`,
-   `RootPy`, or any other awesome libraries that never seem to compile
-   on the server you want them to work on. The dependencies are
-   currently:
+   `RootPy`, or any of the other awesome libraries that never seem to
+   compile on the server you want them to work on. The dependencies
+   are currently:
 
-    + A C++11 compiler (tested with Clang, should work with gcc)
+    + A C++11 compiler (tested with Clang and gcc)
     + HDF5 with C++ bindings.
 
    Obviously we'll eventually need a working version of ROOT.
@@ -30,5 +30,5 @@ If this turns out to be useful it may be developed more.
  3. Run `./bin/test-chunks` to produce the file `test.h5`
  4. Use `h5ls -d test.h5/entries` to dump the data you just wrote.
 
-[repo]: https://github.com/dguest/hdf5-ntuples "github"
+[repo]: https://github.com/dguest/hdf5-ntuples "github repo"
 

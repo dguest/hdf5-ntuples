@@ -8,12 +8,13 @@
 // caveats with variable-length containers).
 #include "OneDimBuffer.hh"
 
-#include <vector>
-#include <iostream>
-#include <cstddef>
-#include <cmath>
 #include "H5Cpp.h"
 #include "h5container.hh"
+
+#include <vector>
+// #include <iostream>
+#include <cstddef>
+#include <cmath>
 
 // _________________________________________________________________________
 // output structure
@@ -22,10 +23,13 @@
 struct Entry {
   double value_d;
   int value_i;
-  const char* value_s;
+  h5::string value_s;
 
-  // `hvl_t` is a variable-length type that hdf5 can recognize.
+  // Variable length containers have to be stored in special vectors.
+  // Internally these wrap a hvl_t structure.
   h5::vector<double> vector_d;
+  h5::vector<h5::string> vector_s;
+  h5::vector<h5::vector<int> > vv_i;
 
   // Include a dummy field. This is just here to make sure it gets
   // stripped off when we run `pack()`.
@@ -48,6 +52,10 @@ int main(int argc, char* argv[]) {
   // `vl_dtype` is a variable-length double.
   // The `VarLenType` constructor takes a _pointer_ to the base datatype.
   auto vl_dtype = H5::VarLenType(&dtype);
+  auto vl_itype = H5::VarLenType(&itype);
+  auto vl_stype = H5::VarLenType(&stype);
+  // We can do as many levels of nesting as we want.
+  auto vvl_itype = H5::VarLenType(&vl_itype);
 
   // Build the output file. Since multiple writes happen throughout
   // the run we have to build this _before_ looping through entries.
@@ -59,7 +67,8 @@ int main(int argc, char* argv[]) {
 
   // Instance one example buffer. We'll call this one `data` and have
   // it store one integer per event.
-  OneDimBuffer<int> int_buffer(file, "some_ints", itype);
+  const size_t buffer_size = 100;
+  OneDimBuffer<int> int_buffer(file, "some_ints", itype, buffer_size);
 
   // We're more interested in storing compound types. These can
   // contain any collection of int, float, strings, or `hvl_t`
@@ -74,19 +83,31 @@ int main(int argc, char* argv[]) {
   H5::CompType entryType(sizeof(Entry));
   entryType.insertMember("value_d", offsetof(Entry, value_d), dtype);
   entryType.insertMember("value_i", offsetof(Entry, value_i), itype);
-  entryType.insertMember("value_s", offsetof(Entry, value_s), stype);
+  // Note that for variable length types we need to use special containers
+  // each of these has an `h5` member which HDF5 can recognize.
+  entryType.insertMember("value_s", offsetof(Entry, value_s.h5), stype);
   entryType.insertMember("vector_d", offsetof(Entry, vector_d.h5), vl_dtype);
-  OneDimBuffer<Entry> ebuffer(file, "entries", entryType);
+  entryType.insertMember("vector_s", offsetof(Entry, vector_s.h5), vl_stype);
+  entryType.insertMember("vv_i", offsetof(Entry, vv_i.h5), vvl_itype);
+  OneDimBuffer<Entry> ebuffer(file, "entries", entryType, buffer_size);
 
   // Now we generate some dummy data
-  for (int iii = 0; iii < 98; iii++) {
+  for (int iii = 0; iii < 500; iii++) {
     // the int_buffer is easy: just push back.
     int_buffer.push_back(iii);
 
-    // Create a vector of doubles to store.
+    // Create a few vectors to store
     std::vector<double> d_vect;
+    h5::vector<h5::string> s_vect;
+    h5::vector<h5::vector<int>> ivv;
     for (int jjj = 0; jjj < (iii % 10); jjj++) {
       d_vect.push_back(jjj / double(iii + 1));
+      h5::vector<int> iv;
+      for (int kkk = 0; kkk < jjj; kkk++) {
+	iv.push_back(kkk);
+      }
+      ivv.push_back(iv);
+      s_vect.push_back(std::to_string(jjj));
     }
     // Create a dummy string.
     std::string some_string("this is " + std::to_string(iii));
@@ -94,24 +115,13 @@ int main(int argc, char* argv[]) {
     // Compose these things into an `Entry` object.
     Entry entry{
       std::sqrt(iii),
-	iii*2,
-	some_string.data(),
-	d_vect};
+    	iii*2,
+    	some_string,
+    	d_vect,
+	s_vect,
+	ivv};
     // add the `Entry` to the buffer.
     ebuffer.push_back(entry);
-
-    // FIXME: this is super-annoying, but we have to flush the buffer
-    //        (i.e. write) with every entry.  The reason is that the
-    //        `data()` calls above return pointers, which aren't valid
-    //        once `d_vect` or `some_string` go out of scope.
-    //
-    //        I'm considering wrapping some vector types in a class
-    //        that owns a `hvl_t` and updates the pointer on copy /
-    //        move / etc. That way we can stuff vectors into
-    //        structures and buffer them like we would any other
-    //        primative type. Will do that if any of this turns out to
-    //        be useful...
-    // ebuffer.flush();
   }
   // Buffers need to be flushed after the loop, since `flush` is only
   // called automatically when the buffer fills up.
