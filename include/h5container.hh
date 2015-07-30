@@ -101,7 +101,8 @@ namespace h5 {
   template<typename T>
   vector<T>& vector<T>::operator=(vector old)
   {
-    std::swap(*this, old);
+    std::swap(this->_vector, old._vector);
+    reset();
     return *this;
   }
 

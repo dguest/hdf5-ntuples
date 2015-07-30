@@ -24,7 +24,7 @@ namespace h5 {
   }
   string& string::operator=(string old)
   {
-    std::swap(*this, old);
+    std::swap(this->_string, old._string);
     reset();
     return *this;
   }

@@ -109,37 +109,28 @@ int main(int argc, char* argv[]) {
   OneDimBuffer<Entry> ebuffer(file, "entries", entryType, buffer_size);
 
   // Now we generate some dummy data
+  // ===============================
+
   for (int iii = 0; iii < 500; iii++) {
     // the int_buffer is easy: just push back.
     int_buffer.push_back(iii);
 
-    // Create a few vectors to store
-    std::vector<double> d_vect;
-    h5::vector<h5::string> s_vect;
-    h5::vector<h5::vector<int>> ivv;
-    h5::vector<Track> tracks;
+    // Create an `Entry` object and fill it with garbage data.
+    Entry entry;
+    entry.value_d = std::sqrt(iii);
+    entry.value_i = iii;
+    entry.value_s = "this is " + std::to_string(iii);
     for (int jjj = 0; jjj < (iii % 10); jjj++) {
-      d_vect.push_back(jjj / double(iii + 1));
+      entry.vector_d.push_back(jjj / double(iii + 1));
+      entry.vector_s.push_back(std::to_string(jjj));
+      entry.tracks.push_back({100.0*jjj, std::sin(jjj)});
       h5::vector<int> iv;
       for (int kkk = 0; kkk < jjj; kkk++) {
-	iv.push_back(kkk);
+    	iv.push_back(kkk);
       }
-      ivv.push_back(iv);
-      s_vect.push_back(std::to_string(jjj));
-      tracks.push_back({100.0*jjj, std::sin(jjj)});
+      entry.vv_i.push_back(iv);
     }
-    // Create a dummy string.
-    std::string some_string("this is " + std::to_string(iii));
 
-    // Compose these things into an `Entry` object.
-    Entry entry{
-      std::sqrt(iii),
-    	iii*2,
-    	some_string,
-    	d_vect,
-	s_vect,
-	ivv,
-	tracks};
     // add the `Entry` to the buffer.
     ebuffer.push_back(entry);
   }

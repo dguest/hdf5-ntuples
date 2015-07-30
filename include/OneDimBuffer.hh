@@ -126,7 +126,7 @@ void OneDimBuffer<T>::push_back(T new_entry) {
 }
 
 // This is where a lot of magic happens. We have to:
-//  - Extend the dataset to accomidate the new entry.
+//  - Extend the dataset to accommodate the new entry.
 //  - Select the part of the new dataset (the hyperslab) to write to.
 //  - Write the buffer out.
 //  - Update the offset.
