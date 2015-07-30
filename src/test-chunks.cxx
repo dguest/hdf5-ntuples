@@ -20,7 +20,7 @@
 #include <cmath>
 
 // _________________________________________________________________________
-// output structure
+// Part 1: define output structures
 
 // Our output structure will have a variable-length array of ``tracks''
 struct Track {
@@ -32,10 +32,15 @@ struct Track {
 struct Entry {
   double value_d;
   int value_i;
-  h5::string value_s;
 
   // Variable length containers have to be stored in special vectors.
   // Internally these wrap a hvl_t structure.
+  //
+  // Note the `h5` (lowercase) namespace: these are deinfed in
+  // `h5container.hh`, and should not be confused with stuff in the
+  // `H5` (uppercase) namespace which is provided in the official
+  // `H5Cpp.h` header.
+  h5::string value_s;
   h5::vector<double> vector_d;
   h5::vector<h5::string> vector_s;
   h5::vector<h5::vector<int> > vv_i;
@@ -44,9 +49,9 @@ struct Entry {
 };
 
 // _________________________________________________________________________
-// main routine starts here
+// Part 2: define output types
 
-int main(int argc, char* argv[]) {
+H5::CompType getEntryType() {
   // Define some shorthand for the `type' of the objects we're going to
   // write out.  HDF5 uses a lot of blind casts from void*, so getting
   // these wrong means segfault or corrupted data!
@@ -64,19 +69,6 @@ int main(int argc, char* argv[]) {
   // We can do as many levels of nesting as we want.
   auto vvl_itype = H5::VarLenType(&vl_itype);
 
-  // Build the output file. Since multiple writes happen throughout
-  // the run we have to build this _before_ looping through entries.
-  //
-  // I'm using HDF_ACC_TRUNC here, which tells HDF5 to overwrite
-  // existing files. It's safer to use H5F_ACC_EXCL, which will throw
-  // an exception rather than overwrite.
-  H5::H5File file("test.h5", H5F_ACC_TRUNC);
-
-  // Instance one example buffer. We'll call this one `ints` and have
-  // it store one integer per event.
-  const size_t buffer_size = 100;
-  OneDimBuffer<int> int_buffer(file, "ints", itype, buffer_size);
-
   // We're more interested in storing compound types. These can
   // contain any collection of int, float, strings, or `hvl_t`
   // (variable length) types.
@@ -88,7 +80,8 @@ int main(int argc, char* argv[]) {
   // You can change the name of the subtype (first argument in
   // `insertMember`), but be careful with the others.
   //
-  // Just for fun, add a vector of compound types
+  // Just for fun, add a vector of compound types to the `Entry`
+  // structure.
   H5::CompType trackType(sizeof(Track));
   trackType.insertMember("pt", offsetof(Track, pt), dtype);
   trackType.insertMember("eta", offsetof(Track, eta), dtype);
@@ -106,10 +99,37 @@ int main(int argc, char* argv[]) {
   entryType.insertMember("vector_s", offsetof(Entry, vector_s.h5), vl_stype);
   entryType.insertMember("vv_i", offsetof(Entry, vv_i.h5), vvl_itype);
   entryType.insertMember("tracks", offsetof(Entry, tracks.h5), tracksType);
+  return entryType;
+}
+
+
+int main(int argc, char* argv[]) {
+
+  // _______________________________________________________________________
+  // Part 3: setup outputs
+
+  // Build the output file. Since multiple writes happen throughout
+  // the run we have to build this _before_ looping through entries.
+  //
+  // I'm using HDF_ACC_TRUNC here, which tells HDF5 to overwrite
+  // existing files. It's safer to use H5F_ACC_EXCL, which will throw
+  // an exception rather than overwrite.
+  H5::H5File file("test.h5", H5F_ACC_TRUNC);
+
+  // The output buffer is periodically flushed.
+  const size_t buffer_size = 100;
+
+  // Instance one example buffer. We'll call this one `ints` and have
+  // it store one integer per event using the `itype` defined above.
+  auto itype = H5::PredType::NATIVE_INT;
+  OneDimBuffer<int> int_buffer(file, "ints", itype, buffer_size);
+  // The more complicated buffer stores entries of type `entryType`
+  // from above.
+  auto entryType = getEntryType();
   OneDimBuffer<Entry> ebuffer(file, "entries", entryType, buffer_size);
 
-  // Now we generate some dummy data
-  // ===============================
+  // _______________________________________________________________________
+  // Part 4: generate some bogus data
 
   for (int iii = 0; iii < 500; iii++) {
     // the int_buffer is easy: just push back.

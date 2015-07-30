@@ -17,7 +17,7 @@ namespace h5 {
 }
 
 // _________________________________________________________________________
-//                               public interface
+// public interface
 //
 // The buffer wraps a homogeneous list of objects with class `T` and
 // supports only a few basic operations (like push_back).
@@ -39,6 +39,11 @@ public:
   // bookkeeping info in the memory-resident objets).
   OneDimBuffer(H5::CommonFG& group, std::string ds_name,
 	       H5::CompType type, hsize_t buffer_size = 10);
+
+  // Disable copy and assignment (for now), not sure what copying will do
+  // with an open HDF5 file.
+  OneDimBuffer(const OneDimBuffer&) = delete;
+  OneDimBuffer& operator=(OneDimBuffer) = delete;
 
   // should be pretty self-explanatory...
   void push_back(T new_entry);
