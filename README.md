@@ -19,6 +19,9 @@ converter. The goals are to:
  - Support writing of D3PD-like data structures, i.e. arbitrary-depth
    nested vectors containing arbitrary data types.
 
+ - Have (relatively) high performance. Entries are buffered before writing
+   them to file to reduce the number of write operations.
+
  - Keep the interface relatively close to the HDF5 bindings. We're not
    trying to abstract _everything_ away.
 

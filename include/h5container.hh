@@ -29,9 +29,11 @@ namespace h5 {
     T* data();
     hvl_t h5;
 
-    // the vector has to be public to keep the compiler from
-    // complaining about non-standard layout, but be careful modifying
-    // the vector (in particular, call `reset()` if you do)
+    // The internals have to be public to keep the compiler from
+    // complaining about non-standard layout, but the data below
+    // should be considered private. At the very least, be careful
+    // modifying these members (in particular, call `reset()` if you
+    // do anything that could invalidate their pointers).
     void reset();
     std::vector<T> _vector;
     std::vector<hvl_t> _hvl_vector;
