@@ -116,6 +116,7 @@ OneDimBuffer<T>::OneDimBuffer(
   H5::DSetCreatPropList params;
   hsize_t chunk_size[1] = {buffer_size};
   params.setChunk(1, chunk_size);
+  params.setDeflate(7);
 
   // Create the actual dataset.
   _ds = group.createDataSet(ds_name, disk_type, orig_space, params);
