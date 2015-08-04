@@ -15,6 +15,27 @@
 // #include <iostream>
 
 namespace h5 {
+  // function to get the offset of a member in a non-standard layout class.
+  // Not very efficient because it creates an instance of the class,
+  // but it's not clear that any other (portable) solutions exist.
+  template<typename T, typename M>
+  size_t offset(M T::*member) {
+    T instance;
+    size_t base = reinterpret_cast<size_t>(&instance);
+    size_t moff = reinterpret_cast<size_t>(&((instance.*member).h5));
+    return moff - base;
+  }
+  template<typename T, typename M>
+  size_t simple_offset(M T::*member) {
+    T instance;
+    size_t base = reinterpret_cast<size_t>(&instance);
+    size_t moff = reinterpret_cast<size_t>(&(instance.*member));
+    return moff - base;
+  }
+
+  // template<typename T> class string;
+  // template<typename T> void reset(vector<T>& cont);
+
   template<typename T>
   class vector
   {
@@ -29,13 +50,17 @@ namespace h5 {
     size_t size() const;
     T* data();
     hvl_t h5;
-
     // The internals have to be public to keep the compiler from
     // complaining about non-standard layout, but the data below
     // should be considered private. At the very least, be careful
     // modifying these members (in particular, call `reset()` if you
     // do anything that could invalidate their pointers).
+  private:
     void reset();
+    friend void reset(vector& cont);
+  public:
+    // FIXME: making these private doesn't work because the above
+    //        `friend` declaration isn't being recognized...
     std::vector<T> _vector;
     std::vector<hvl_t> _hvl_vector;
     // specialization for strings
@@ -54,9 +79,9 @@ namespace h5 {
     size_t size() const;
     const char* data() const;
     const char* h5;
-
     // see warning above wrt calling `reset()` and the internal container
     void reset();
+  private:
     std::string _string;
   };
 
