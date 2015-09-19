@@ -28,6 +28,11 @@ struct Track {
   double eta;
 };
 
+struct MultiTrack {
+  h5::vector<Track> tracks;
+  int n_tracks;
+};
+
 // This dummy `Entry` structure could correspond to an event, a jet, etc
 struct Entry {
   double value_d;
@@ -45,6 +50,7 @@ struct Entry {
   h5::vector<h5::string> vector_s;
   h5::vector<h5::vector<int> > vv_i;
   h5::vector<Track> tracks;
+  h5::vector<MultiTrack> verts;
 
 };
 
@@ -89,19 +95,28 @@ H5::CompType getEntryType() {
   trackType.insertMember("pt", simple_offset(&Track::pt), dtype);
   trackType.insertMember("eta", simple_offset(&Track::eta), dtype);
   auto tracksType = H5::VarLenType(&trackType);
+
+  H5::CompType multitrack(sizeof(MultiTrack));
+  multitrack.insertMember("tracks", offset(&MultiTrack::tracks),
+			  tracksType);
+  multitrack.insertMember("n_tracks", simple_offset(&MultiTrack::n_tracks),
+  			  itype);
+  auto multitracks = H5::VarLenType(&multitrack);
+
   // now define the main `Entry` structure
   H5::CompType entryType(sizeof(Entry));
-  entryType.insertMember("value_d", simple_offset(&Entry::value_d), dtype);
-  entryType.insertMember("value_i", simple_offset(&Entry::value_i), itype);
+  // entryType.insertMember("value_d", simple_offset(&Entry::value_d), dtype);
+  // entryType.insertMember("value_i", simple_offset(&Entry::value_i), itype);
   // Note that for variable length types we need to use special containers
   // each of these has an `h5` member which HDF5 can recognize.
   // Since this is the first member of the classes the offset within the
   // class is technically zero, but better to point to it explicitly.
-  entryType.insertMember("value_s", offset(&Entry::value_s), stype);
-  entryType.insertMember("vector_d", offset(&Entry::vector_d), vl_dtype);
-  entryType.insertMember("vector_s", offset(&Entry::vector_s), vl_stype);
-  entryType.insertMember("vv_i", offset(&Entry::vv_i), vvl_itype);
-  entryType.insertMember("tracks", offset(&Entry::tracks), tracksType);
+  // entryType.insertMember("value_s", offset(&Entry::value_s), stype);
+  // entryType.insertMember("vector_d", offset(&Entry::vector_d), vl_dtype);
+  // entryType.insertMember("vector_s", offset(&Entry::vector_s), vl_stype);
+  // entryType.insertMember("vv_i", offset(&Entry::vv_i), vvl_itype);
+  // entryType.insertMember("tracks", offset(&Entry::tracks), tracksType);
+  entryType.insertMember("verts", offset(&Entry::verts), multitracks);
   return entryType;
 }
 
@@ -148,10 +163,15 @@ int main(int argc, char* argv[]) {
       entry.vector_s.push_back(std::to_string(jjj));
       entry.tracks.push_back({100.0*jjj, std::sin(jjj)});
       h5::vector<int> iv;
+      MultiTrack tk;
       for (int kkk = 0; kkk < jjj; kkk++) {
     	iv.push_back(kkk);
+	tk.tracks.push_back({100.0*jjj, std::sin(jjj)});
+	tk.n_tracks = jjj;
       }
       entry.vv_i.push_back(iv);
+      entry.verts.push_back(tk);
+
     }
 
     // add the `Entry` to the buffer.
