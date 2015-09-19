@@ -13,7 +13,7 @@ def run():
     args = _get_args()
     with File(args.input_file, 'r') as h5:
         vals = h5['entries']
-        print(vals['verts'])
+        print(vals[0])
         # for num, entry in enumerate(mid_level[4]):
             # print(num, entry)
 
