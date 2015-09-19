@@ -30,7 +30,7 @@ struct Track {
 
 struct MultiTrack {
   h5::vector<Track> tracks;
-  int n_tracks;
+  // int n_tracks;
 };
 
 // This dummy `Entry` structure could correspond to an event, a jet, etc
@@ -74,8 +74,8 @@ H5::CompType getEntryType() {
   H5::CompType multitrack(sizeof(MultiTrack));
   multitrack.insertMember("tracks", offset(&MultiTrack::tracks),
 			  tracksType);
-  multitrack.insertMember("n_tracks", simple_offset(&MultiTrack::n_tracks),
-  			  itype);
+  // multitrack.insertMember("n_tracks", simple_offset(&MultiTrack::n_tracks),
+  // 			  itype);
   auto multitracks = H5::VarLenType(&multitrack);
 
   // now define the main `Entry` structure
@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
   H5::H5File file("test.h5", H5F_ACC_TRUNC);
 
   // The output buffer is periodically flushed.
-  const size_t buffer_size = 100;
+  const size_t buffer_size = 40;
 
   // The more complicated buffer stores entries of type `entryType`
   // from above.
@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
       MultiTrack tk;
       for (int kkk = 0; kkk < jjj; kkk++) {
 	tk.tracks.push_back({100.0*jjj, std::sin(jjj)});
-	tk.n_tracks = jjj;
+	// tk.n_tracks = jjj;
       }
       entry.verts.push_back(tk);
     }
